@@ -460,6 +460,8 @@ function openPlaylistFolder () {
 	playlistFolderOpen = !playlistFolderOpen
 }
 
+
+
 function addToPlaylist() {
 	$('.playlist-test').show()
 	$(document).one('click', function() {
