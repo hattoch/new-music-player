@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Media Player</title>
+	<meta charset=utf-8>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  	
+  	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+  	<link href="https://fonts.googleapis.com/css?family=Roboto:400,700" rel="stylesheet"> 
+
+  	<link rel="stylesheet" href="style/style.css">
+</head>
+<body>
+
+
+<section id="header" class="row justify-content-center align-items-center">
+</section>
+
+<div class="container-fluid p-0">
+	<div class="row no-gutters">
+		<section class="col-6">
+      <div class="playlist-tab d-flex justify-content-center">
+        <p>
+          Playlist
+        </p>
+      </div>
+      <div class="playlist-menu">
+        <!-- injected by js  -->
+      </div>
+      <div id="songList">
+			 <!-- injected by js func loadSongList -->
+      </div>
+		</section>
+		<section id="turntable" class="col-6">
+			<div class="album-cover d-flex justify-content-center">
+				<img class="turntable currentCover" src="img/cover-placeholder.png">
+			</div>
+			<div id="trackInfo" class="d-flex justify-content-between align-items-center">
+				<i class="fas fa-plus-circle"></i>
+				<div class="d-flex flex-column">
+					<p class="currentArtist flex-fill d-flex justify-content-center">- -</p>
+					<p class="currentTitle flex-fill d-flex justify-content-center">- -</p>
+				</div>
+				<div>
+					<i class="fas fa-heart p-1"></i>
+					<i id="volIcon" class="fas fa-volume-up p-1"></i>
+				</div>
+			</div>
+			<div id="progress" class="row no-gutters justify-content-between align-items-center">
+				<div class="col-auto">
+					<p class="elapsedTime">
+						0:00
+					</p>
+				</div>
+				<div class="col-9 d-flex justify-content-center align-items-center">
+					<div class="progressBarFill flex-1 mr-auto">
+					</div>
+					<div class="progressBarEmpty flex-1">
+					</div>
+				</div>
+				<div class="col-auto">
+					<p class="fullDuration">
+						0:00
+					</p>
+				</div>
+			</div>
+			<div id="controls" class="d-flex justify-content-around align-items-center">
+				<i class="fas fa-redo"></i>
+				<i class="fas fa-backward fa-2x"></i>
+				<i id="bigPlayButton" class="fas fa-play-circle fa-4x"></i>
+				<i class="fas fa-forward fa-2x"></i>
+				<i class="fas fa-random"></i>
+			</div>
+		</section>
+	</div>
+</div>
+
+<div id="popupVol">
+	<div class="innerBar d-flex align-items-end">
+		<div class="volDisplay">
+		</div>
+		<div class="volInput">
+		</div>
+	</div>
+</div>
+
+<div class="bg-primary playlist-test">
+	hej
+</div>
+
+<!-- scripts -->
+
+<script 
+	src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/TimelineMax.min.js"></script>
+<script 
+	src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/TweenMax.min.js"></script>
+<script 
+	src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<script 
+	src="https://connect.soundcloud.com/sdk/sdk-3.3.0.js"></script>
+<script
+	src="https://code.jquery.com/jquery-3.3.1.min.js"
+	integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+	crossorigin="anonymous"></script>
+<script 
+	src="https://unpkg.com/popper.js"></script>
+<script 
+	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script 
+	src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" 
+	crossorigin="anonymous"></script>
+<script 
+	src="script/script.js"></script>
+
+</body>
+</html>

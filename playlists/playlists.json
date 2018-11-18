@@ -1,0 +1,21 @@
+{
+  "playlists": [
+
+  	{
+  		"index": 0,
+  		"name": "Test Playlist",
+  		"containsSongs": [0, 2, 3]
+  	},
+  	{
+  		"index": 1,
+  		"name": "Rad",
+  		"containsSongs": [4]
+  	},
+  	{
+  		"index": 2,
+  		"name": "Classical",
+  		"containsSongs": [0, 1, 2, 3]
+  	}
+
+  ] 
+}

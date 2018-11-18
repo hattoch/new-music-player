@@ -1,0 +1,177 @@
+/* 
+font-family: "Roboto", sans-serif;
+background-color: #141d1f;
+*/
+
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: #141d1f;
+  color: white;
+  height: 100vh;
+  font-family: "Roboto", sans-serif;
+  color: lightgray;
+  max-height: 100vh;
+}
+
+img {
+  height: 100%;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+.currentTitle {
+  padding: 0.5em;
+}
+
+.currentArtist {
+  padding: 0.5em;
+}
+
+.currentCover {
+  margin: 1rem;
+  max-height: 400px
+}
+
+.turntable.currentCover {
+  
+}
+
+.coverImg {
+  height: 5rem;
+  padding: 0.5rem;
+}
+
+#header{
+  height: 2.5rem;
+  background-color: hsl(191, 30%, 15%);
+  font-size: 0.9em;
+}
+
+.canHover {
+  background-color: #141d1f
+}
+
+.canHover:hover {
+  background-color: hsl(191, 30%, 12%)
+}
+
+.playing {
+  background-color: hsl(191, 30%, 18%)
+}
+
+.songList {
+  overflow: scroll
+}
+
+.songContainer {
+  padding-right: 1rem;
+}
+
+#popupVol {
+  margin-bottom: 0.3rem;
+  display: none;
+  width: 15px;
+  height: 70px;
+  background-color: hsl(191, 22%, 13%)
+}
+
+.innerBar {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+}
+
+/* This one is over volDisplay, this is the one to click */
+.volInput {
+  background-color: green;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  opacity: 0;
+}
+
+.volDisplay {
+  background-color: hsl(191, 30%, 20%);
+  height: 100%;
+  width: 100%;
+  position: relative;
+  border-radius: 0.2rem;
+}
+
+#trackInfo {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+#progress {
+  width: 100%;
+}
+
+/* This one is over progBarFill, this is the one to click */
+.progressBarEmpty {
+  background-color: hsl(191, 30%, 20%);
+  width: 100%;
+  height: 15px;
+  border-radius: 0.2rem;
+  position: absolute;
+  opacity: 0.2;
+}
+
+.progressBarFill {
+  width: 0%;
+  background-color: hsl(191, 30%, 15%);
+  height: 15px;
+  border-radius: 0.2rem;
+  position: relative;
+}
+
+#test {
+  border: 1px solid white;
+  padding: 1rem;
+  width: 100px;
+  height: 100px;
+  color: white;
+}
+
+.playlist-tab {
+  width: 100%;
+  height: auto;
+  background: linear-gradient(90deg, hsl(191, 30%, 50%), hsl(191, 30%, 20%));
+  color: #2D2D2D;
+}
+
+.playlist-tab:hover {
+  background: linear-gradient(90deg, hsl(191, 30%, 50%), hsl(191, 30%, 25%));
+  color: black;
+}
+
+.playlist-menu {
+  height: 0%;
+  color: white;
+  background-color: hsl(191, 30%, 20%);
+}
+
+.playlist {
+  
+  background-color: #141d1f;
+  
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.playlist-test {
+  display: none;
+  position: fixed; 
+  left: 50%;
+  top: 50%;
+  height: 10rem; 
+  width: 10rem; 
+  background-color: blue
+}
+
+
