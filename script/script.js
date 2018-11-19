@@ -52,8 +52,7 @@ let currentSong = {
 // Creates poppers
 var popupVol = $("#popupVol")
 //popupVol.hide()
-isPopupVis = false
-
+isVolPopupVisible = false
 // Animations
 
 
@@ -83,6 +82,7 @@ $(document).on('click', '.fa-heart', loved);
 $(document).on('click', '.fa-plus-circle', addToPlaylist);
 $(document).on('click', '.playlist-tab', openPlaylistFolder)
 $(document).on('click', '.playlist', loadSongList)
+$(document).on('click', '.show-songs', showRestSongs)
 
 function test () {
 	TweenMax.to("#test", 4, {x:300})
@@ -97,14 +97,16 @@ function loadSongList() {
 	let plTimeline = new TimelineMax()
 
 	$('#songList').empty()
-	$('.playlist-menu').empty()
-	plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%"}).to('.saved-playlists', 0.1, {opacity: 0})
+	plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
+	playlistFolderOpen = !playlistFolderOpen
 
-	$.getJSON('./playlists/playlists.json',{}, function( data ) { 
-	  playlistJSON = data
-	  playlistSongs = playlistJSON.playlists[playListIndex].containsSongs
+	$.getJSON('./playlists/savedPlaylists.json',{}, function( data ) { 
+	  playlistSongs = data
+	  playlistSongs = playlistSongs.playlistArr[playListIndex].containsSongs
+	  console.log("adsfasdf")
 
 	  for (let i = 0; i < playlistSongs.length; i++) {
+	  	
 	  	
 		$('#songList').append(`<div class='songContainer canHover d-flex justify-content-between align-items-center' data-index=${i} data-src=${songDB[playlistSongs[i]].src}>
 								<img class='coverImg' src= ${ songDB[playlistSongs[i]].cover }>
@@ -377,15 +379,15 @@ function playNextTrack() {
 
 function toggleVolumeBar() {
 	console.log("toggle volume bar")
-	if (isPopupVis) {
+	if (isVolPopupVisible) {
 		popupVol.hide()
 		popupVol.removeClass("d-flex align-items-end")
 	} else {
 		popupVol.show()
 		popupVol.addClass("d-flex align-items-end")
 	}
-	isPopupVis = !isPopupVis
-	var popper = new Popper($(".fa-volume-up"), popupVol, {
+	isVolPopupVisible = !isVolPopupVisible
+	let popper = new Popper(this, popupVol, {
 		placement: 'top'
 	})
 }
@@ -434,33 +436,89 @@ function openPlaylistFolder () {
 	let plTimeline = new TimelineMax()
 	
 	if (playlistFolderOpen) {
-		plTimeline.to('.playlist', 1, {opacity: 0}).to('.playlist-menu', 1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
+		plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
+
 
 	} else {
-		let playlistJSON;
+		let savedPlaylists;
 		let toLoad = ""
 
-		$.getJSON('./playlists/playlists.json',{}, function( data ){ 
-		  	playlistJSON = data
+		$.getJSON('./playlists/savedPlaylists.json',{}, function( data ){ 
+		  	savedPlaylists = data
 
-		  	for (let i = 0; i < 3; i++) {
-				let instance = playlistJSON.playlists[i]
+		  	for (let i = 0; i < savedPlaylists.playlistArr.length; i++) {
+				let instance = savedPlaylists.playlistArr[i]
+				let containsSongsList = ""
+				let tooLong
+
+				for (let x = 0; x < instance.containsSongs.length; x++) {
+					containsSongsList = containsSongsList + songDB[instance.containsSongs[x]].title
+					// last turn (3), or there are no more songs in the playlist
+					if (x === 2 || x === instance.containsSongs.length - 1) {
+						// last turn and the playlist has still more songs
+						if (x === 2 && instance.containsSongs.length > 3) {
+							tooLong = true
+						}
+						break
+					} else {
+						containsSongsList = containsSongsList + ", "
+					}
+				}
+
 				toLoad = toLoad + `<div class='playlist' data-index='${i}' data-containsSongs='${instance.containsSongs}'>
 							<p>${instance.name}</p>
-							<p>${ songDB[instance.containsSongs[0]].title }</p>
+							<p class="contains-songs">${containsSongsList} ${tooLong ? `<span class='show-songs'>...</span><p class='restSongs hide'>${"testing"}</p>` : console.log("blabla")}</p>
 						</div>`
-						console.log(toLoad)
 			}
 			$('.playlist-menu').html(toLoad)
 			let heightToUse = $(".playlist-menu").get(0).scrollHeight
 			//** it's getting the automatic heigh but it's off by like 10px. I've hardcoded that in.
-			plTimeline.to('.playlist-menu', 1, {ease: Power2.easeOut, height: heightToUse + 10 + "px"}).to('.playlist', 1, {scale: 1, opacity: 0.5}, "-=0.5")
+			plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: heightToUse + "px"}).to('.playlist', 0.1, {opacity: 0.5})
 		})
 	}
 	playlistFolderOpen = !playlistFolderOpen
 }
 
+function showRestSongs(e) {
+	e.stopPropagation()
+	let allSongs = $(this).parents('.playlist').data('containssongs')
+	let arrayOfAllSongs = JSON.parse("[" + allSongs + "]")
+	let songsToShow = ", "
 
+	if ( $(this).hasClass("showing") ) {
+		$('.show-songs').removeClass("showing")
+		$('.show-songs').html("...")
+		let songToRemove = songDB[arrayOfAllSongs[3]].title
+		let startIndex = $('.contains-songs').html().indexOf(songToRemove) - 2 //to include the space and comma before it
+		console.log($(this).parents().html())
+		console.log()
+	} else {
+		for (let i = 3; i < arrayOfAllSongs.length; i++) {
+			songsToShow = songsToShow + songDB[arrayOfAllSongs[i]].title
+			if (i === arrayOfAllSongs.length - 1) {
+				break
+			} else {
+				songsToShow = songsToShow + ", "
+			}
+			console.log(songsToShow)
+		}
+		$('.show-songs').addClass("showing")
+		$('.show-songs').html("hide")
+		$(this).before(songsToShow)
+	}
+	
+	
+	/*
+	if (isRestPopupVis) {
+		$('#popupAllSongs').hide()
+	} else {
+		let allSongs = $(this).parents('.playlist').data('containssongs')
+		let arrayOfAllSongs = JSON.parse("[" + allSongs + "]")
+		$('#popupAllSongs').html(arrayOfAllSongs)
+		$('#popupAllSongs').show()
+	}
+	*/
+}
 
 function addToPlaylist() {
 	$('.playlist-test').show()
