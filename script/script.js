@@ -1,60 +1,17 @@
-// STORAGE
-const songDB = [
-{
-	title: "42 karat", 
-	artist: "Bruno Mars",
-	cover: "img/album-cover1.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_the-happy-monster_chubby-jackson-and-his-orchestra-jackson-bauer_gbia0005336b/The%20Happy%20Monster%20-%20Chubby%20Jackson%20and%20his%20Orchestra.mp3"
-},
-{
-	title: "Roar",
-	artist: "Katy Perry",
-	cover: "img/album-cover2.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_la-vie-en-rose_the-bernard-peiffer-trio-bernard-peiffer-bill--clark-joe-benjamin_gbia0005289b/La%20Vie%20En%20Rose%20-%20The%20Bernard%20Peiffer%20Trio.mp3"
-},
-{
-	title: "November Rain", 
-	artist: "Guns N Roses",
-	cover: "img/album-cover3.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_gloomy-sunday-the-famous-hungarian-suicide-song_billie-holiday-lewis-seress_gbia0008324b/Gloomy%20Sunday%20%28The%20Famous%20Hungarian%20Suici%20-%20Billie%20Holiday.mp3"
-},
-{
-	title: "Kiss",
-	artist: "Prince",
-	cover: "img/album-cover4.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_deep-purple_jimmy-dorsey-and-his-orchestra-bob-eberly-peter-de-rose-mitchell-parris_gbia0013895a/Deep%20Purple%20-%20Jimmy%20Dorsey%20And%20His%20Orchestra.mp3"
-},
-{
-	title: "Sweet Home Alabama", 
-	artist: "Lynard Skynard",
-	cover: "img/album-cover5.jpg",
-	loved: false,
-	src: "songs/heynow.mp3"
-}]
+var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+var justNames = _.pluck(stooges, 'name');
+console.log("justNames", justNames)
 
-let currentSong = {
-	index: null,
-	id: null,
-	title: null,
-	artist: null,
-	cover: null,
-	src: null,
-	playBtn: null,
-	shouldRepeat: false,
-	shouldShuffle: false,
-	isLoved: null
-}
+
+
+let currentSong
+var playlists = []
+
 
 // Creates poppers
 var popupVol = $("#popupVol")
 //popupVol.hide()
 isVolPopupVisible = false
-// Animations
-
 
 // Audio settings
 var player = new Audio()
@@ -84,12 +41,37 @@ $(document).on('click', '.playlist-tab', openPlaylistFolder)
 $(document).on('click', '.playlist', loadSongList)
 $(document).on('click', '.show-songs', showRestSongs)
 
-function test () {
-	TweenMax.to("#test", 4, {x:300})
-}
+// Fetch playlists from server
+$.getJSON('./playlists/savedPlaylists.json',{}, function( data ){ 
+	for (let playlist of data) {
+		let songs = []
+		for (track of playlist.tracksIndex) {
+			let songSettings = {
+				title: songDB[track].title,
+				artist: songDB[track].artist,
+				cover: songDB[track].cover,
+				loved: songDB[track].loved,
+				src: songDB[track].src
+			}
+			songs.push(new Song(songSettings))
+		}
+		
+		let settings = {
+			name: playlist.name,
+			tracksIndex: playlist.tracksIndex,
+			tracks: songs
+		}
+		playlists.push(new Playlist(settings))
+	}
+})
+
+setTimeout(function(){console.log(playlists),1000})
 
 // Functions
 function loadSongList() {
+
+
+	console.log(this)
 	let playListIndex = $(this).data("index")	
 	let playlistJSON
 	let playlistSongs
@@ -102,7 +84,7 @@ function loadSongList() {
 
 	$.getJSON('./playlists/savedPlaylists.json',{}, function( data ) { 
 	  playlistSongs = data
-	  playlistSongs = playlistSongs.playlistArr[playListIndex].containsSongs
+	  playlistSongs = playlistSongs[playListIndex].containsSongs
 	  console.log("adsfasdf")
 
 	  for (let i = 0; i < playlistSongs.length; i++) {
@@ -143,17 +125,21 @@ function loadTrack(trackToChange) {
 	}
 
 	//must remove the pause icon and track highlight before anything else
-	$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")//**
+	//$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")//**
 	
 	//copies all db data to currentSong object
-	currentSong.index = newSong.index
-	currentSong.id = `[data-index=${currentSong.index}]`
-	currentSong.title = songDB[currentSong.index].title
-	currentSong.artist = songDB[currentSong.index].artist
-	currentSong.cover = songDB[currentSong.index].cover
-	currentSong.src = songDB[currentSong.index].src
-	currentSong.playBtn = $(currentSong.id).find("#smallPlayButton")
-	currentSong.isLoved = songDB[currentSong.index].loved
+	let settings = {
+		index: newSong.index,
+		id: `[data-index=${newSong.index}]`,
+		title: songDB[newSong.index].title,
+		artist: songDB[newSong.index].artist,
+		cover: songDB[newSong.index].cover,
+		src: songDB[newSong.index].src,
+		playBtn: $(newSong.id).find("#smallPlayButton"),
+		isLoved: songDB[newSong.index].loved
+	}
+
+	currentSong = new CurrentSong(settings)
 
 	//updates info to places that display it
 	$(".currentTitle").text(currentSong.title)
@@ -435,49 +421,31 @@ function loved () {
 function openPlaylistFolder () {
 	let plTimeline = new TimelineMax()
 	
-	if (playlistFolderOpen) {
-		plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
-
-
+	if (!playlistFolderOpen) {
+		let playlistsDOM = ""
+		let template = _.template(
+			"<div class='playlist' data-playlist-name='<%= name %>' data-tracks='<%= tracksIndex %>'>" +
+				"<p><%= name %></p>" +
+				"<p class='contains-songs'><%= trackTitles %></p>" +
+			"</div>")
+		for (let playlist of playlists) {				
+			let compiled = template({
+					tracksIndex: playlist.tracksIndex,
+					name: playlist.name,
+					trackTitles: playlist.trackNames()
+					})
+			playlistsDOM = playlistsDOM + compiled
+		}
+		$('.playlist-menu').html(playlistsDOM)
+		let heightToUse = $(".playlist-menu").get(0).scrollHeight
+		plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: heightToUse + "px"}).to('.playlist', 0.1, {opacity: 0.5})
 	} else {
-		let savedPlaylists;
-		let toLoad = ""
-
-		$.getJSON('./playlists/savedPlaylists.json',{}, function( data ){ 
-		  	savedPlaylists = data
-
-		  	for (let i = 0; i < savedPlaylists.playlistArr.length; i++) {
-				let instance = savedPlaylists.playlistArr[i]
-				let containsSongsList = ""
-				let tooLong
-
-				for (let x = 0; x < instance.containsSongs.length; x++) {
-					containsSongsList = containsSongsList + songDB[instance.containsSongs[x]].title
-					// last turn (3), or there are no more songs in the playlist
-					if (x === 2 || x === instance.containsSongs.length - 1) {
-						// last turn and the playlist has still more songs
-						if (x === 2 && instance.containsSongs.length > 3) {
-							tooLong = true
-						}
-						break
-					} else {
-						containsSongsList = containsSongsList + ", "
-					}
-				}
-
-				toLoad = toLoad + `<div class='playlist' data-index='${i}' data-containsSongs='${instance.containsSongs}'>
-							<p>${instance.name}</p>
-							<p class="contains-songs">${containsSongsList} ${tooLong ? `<span class='show-songs'>...</span><p class='restSongs hide'>${"testing"}</p>` : console.log("blabla")}</p>
-						</div>`
-			}
-			$('.playlist-menu').html(toLoad)
-			let heightToUse = $(".playlist-menu").get(0).scrollHeight
-			//** it's getting the automatic heigh but it's off by like 10px. I've hardcoded that in.
-			plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: heightToUse + "px"}).to('.playlist', 0.1, {opacity: 0.5})
-		})
+		plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
 	}
 	playlistFolderOpen = !playlistFolderOpen
 }
+
+
 
 function showRestSongs(e) {
 	e.stopPropagation()
