@@ -2,15 +2,20 @@ class Playlist {
 	constructor(settings) {
 		let defaults = {
 			name: '',
-			tracksIndex: []
+			tracksIndex: [],
+			tracks: []
 		}
 		Object.assign(this, defaults, settings)
 	}
 	trackNames() {
-		let trackTitles = []
-		for (let track of this.tracksIndex) {
-			trackTitles.push(" " + songDB[track].title)
+		let trackTitles = {
+			rest: [],
+			partial: []			
 		}
+		for (let track of this.tracks) {
+			trackTitles.partial.push(" " + track.title)
+		}
+		trackTitles.rest = trackTitles.partial.splice(3, trackTitles.partial.length)
 		return trackTitles
 	}
 }

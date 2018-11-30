@@ -1,12 +1,6 @@
-var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
-var justNames = _.pluck(stooges, 'name');
-console.log("justNames", justNames)
-
-
-
-let currentSong
 var playlists = []
-
+var curentPlaylist
+var currentSong
 
 // Creates poppers
 var popupVol = $("#popupVol")
@@ -23,7 +17,7 @@ var playlistFolderOpen = false
 let runningInterval = 0
 
 // Add event handlers
-$(document).on('dblclick', '.songContainer', loadTrack);
+$(document).on('dblclick', '.song', loadTrack);
 $(document).on('click', '.fa-play-circle', play);
 $(document).on('click', '.fa-pause-circle', play);
 $(document).on('click', '.fa-backward', playPrevTrack);
@@ -38,8 +32,9 @@ $(document).on('click', '#test', test);
 $(document).on('click', '.fa-heart', loved);
 $(document).on('click', '.fa-plus-circle', addToPlaylist);
 $(document).on('click', '.playlist-tab', openPlaylistFolder)
-$(document).on('click', '.playlist', loadSongList)
+$(document).on('click', '.playlist', loadSongs)
 $(document).on('click', '.show-songs', showRestSongs)
+
 
 // Fetch playlists from server
 $.getJSON('./playlists/savedPlaylists.json',{}, function( data ){ 
@@ -55,7 +50,6 @@ $.getJSON('./playlists/savedPlaylists.json',{}, function( data ){
 			}
 			songs.push(new Song(songSettings))
 		}
-		
 		let settings = {
 			name: playlist.name,
 			tracksIndex: playlist.tracksIndex,
@@ -65,81 +59,51 @@ $.getJSON('./playlists/savedPlaylists.json',{}, function( data ){
 	}
 })
 
-setTimeout(function(){console.log(playlists),1000})
+//setTimeout(function(){console.log(playlists),1000})
 
 // Functions
-function loadSongList() {
-
-
-	console.log(this)
-	let playListIndex = $(this).data("index")	
-	let playlistJSON
-	let playlistSongs
-	let toLoad
-	let plTimeline = new TimelineMax()
-
+function loadSongs() {
+	currentPlaylist = new CurrentPlaylist(_.findWhere(playlists, {name: $(this).data('playlist-name')}))
 	$('#songList').empty()
-	plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
-	playlistFolderOpen = !playlistFolderOpen
 
-	$.getJSON('./playlists/savedPlaylists.json',{}, function( data ) { 
-	  playlistSongs = data
-	  playlistSongs = playlistSongs[playListIndex].containsSongs
-	  console.log("adsfasdf")
-
-	  for (let i = 0; i < playlistSongs.length; i++) {
-	  	
-	  	
-		$('#songList').append(`<div class='songContainer canHover d-flex justify-content-between align-items-center' data-index=${i} data-src=${songDB[playlistSongs[i]].src}>
-								<img class='coverImg' src= ${ songDB[playlistSongs[i]].cover }>
-								<div class="d-flex flex-column ">
-									<p class="flex-fill d-flex justify-content-center">${ songDB[playlistSongs[i]].artist }</p>
-									<p class="flex-fill d-flex justify-content-center">${ songDB[playlistSongs[i]].title }</p>
-								</div>
-								<i id="smallPlayButton" class="fas fa-play-circle"></i>
-								</div>`
-								)
-		}
-	})
+	let plTimeline = new TimelineMax()
+	plTimeline
+		.to('.playlist', 0.1, {opacity: 0})
+		.to('.playlist-menu', 0.1, {
+			ease: Power2.easeOut, 
+			height: "0%", 
+			onComplete: function() {$('.playlist-menu').empty()} })
 	
-	TweenMax.from($(".songContainer"), 0.5, {x:-100, opacity: 0})
+	for (let track of currentPlaylist.tracks) {
+		track.render('#songList')
+	}
+	
+	TweenMax.from($(".song"), 0.5, {x:-100, opacity: 0})
+
+	playlistFolderOpen = !playlistFolderOpen
 }
 
-// trackToChange is either a number if it comes from prev- or nextTrack, or an event object if it comes from a songContainer or progressBarEmpty click
+// trackToChange is either a number if it comes from prev- or nextTrack, or an event object if it comes from a song
 function loadTrack(trackToChange) {
 	console.log("loading track")
 
-	let newSong = {index: null}
+	let songToLoad
 
-	//removes highlight from previous track(s), before hightlighting clicked track, 
-	$(".songContainer.playing").removeClass("playing").addClass("canHover")
-
-	// if coming from songContainer, make that the song, otherwise use the trackToChange provided by next- and prevTrack
-	if ( $(this).hasClass("songContainer") ) {
-		$(this).removeClass("canHover")
-		$(this).addClass("playing")
-		newSong.index = $(this).data("index")
-	} else if (trackToChange || trackToChange === 0) {
-		$( `.songContainer[data-index= ${trackToChange} ]` ).removeClass("canHover").addClass("playing")
-		newSong.index = trackToChange
+	if ( $(this).hasClass("song") ) {
+		songToLoad = _.findWhere(currentPlaylist.tracks, {
+			title: $(this).data('title'),
+			artist: $(this).data('artist')
+		});
+	} else {
+		songToLoad = trackToChange
 	}
 
-	//must remove the pause icon and track highlight before anything else
-	//$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")//**
-	
-	//copies all db data to currentSong object
-	let settings = {
-		index: newSong.index,
-		id: `[data-index=${newSong.index}]`,
-		title: songDB[newSong.index].title,
-		artist: songDB[newSong.index].artist,
-		cover: songDB[newSong.index].cover,
-		src: songDB[newSong.index].src,
-		playBtn: $(newSong.id).find("#smallPlayButton"),
-		isLoved: songDB[newSong.index].loved
-	}
+	songToLoad.selector = `.song[data-title='${ songToLoad.title }']`
+	songToLoad.playBtn = $(songToLoad.selector).find("#smallPlayButton")
 
-	currentSong = new CurrentSong(settings)
+	currentSong = new CurrentSong(songToLoad)
+	$(".song.playing").removeClass("playing").addClass("canHover")
+	$(currentSong.selector).removeClass("canHover").addClass("playing")
 
 	//updates info to places that display it
 	$(".currentTitle").text(currentSong.title)
@@ -150,8 +114,7 @@ function loadTrack(trackToChange) {
 	//Set song source
 	player.src = currentSong.src
 
-	let isSongLoved = songDB[currentSong.index].loved
-	if (isSongLoved) {
+	if (currentSong.loved) {
 		$(".fa-heart").css("color", "red")
 	} else {
 		$(".fa-heart").css("color", "white")
@@ -168,14 +131,13 @@ function loadTrack(trackToChange) {
 }
 
 function play() {
-	let songIsLoaded = currentSong.index || currentSong.index === 0
-
 	TweenMax.to(this, 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
 
-	if (songIsLoaded) {
+	if (currentSong) {
 		if (isPlaying) {
 			console.log("pausing")
 			player.pause()
+			isPlaying = !isPlaying
 			//Change pause buttons to play
 			$("#bigPlayButton").removeClass("fa-pause-circle").addClass("fa-play-circle")
 			$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")
@@ -189,7 +151,6 @@ function play() {
 			$(currentSong.playBtn).removeClass("fa-play-circle").addClass("fa-pause-circle")
 			setProgress()
 		}
-
 	} else {
 		console.log("Can't play: no song loaded")
 	}
@@ -272,56 +233,60 @@ function repeat(state) {
 		currentSong.shouldRepeat = false
 	} else {
 		shuffle("turnOff")
-		if (currentSong.shouldRepeat) {
+		if (currentPlaylist.shouldRepeat) {
 			$(".fa-redo").css("color", "inherit")
 			console.log("repeating off")
 		} else {
 			$(".fa-redo").css("color", "green")
 			console.log("repeating on")
 		}
-		currentSong.shouldRepeat = !currentSong.shouldRepeat
+		currentPlaylist.shouldRepeat = !currentPlaylist.shouldRepeat
 	}
 }
 
 function shuffle(state) {
 	if (state === "turnOff") {
 		$(".fa-random").css("color", "inherit")
-		currentSong.shouldShuffle = false
+		currentPlaylist.shouldShuffle = false
 	} else {
 		repeat("turnOff")
-		if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldShuffle) {
 			$(".fa-random").css("color", "inherit")
-			console.log("shuffling off: " + currentSong.shouldShuffle)
+			console.log("shuffling off: " + currentPlaylist.shouldShuffle)
 		} else {
 			$(".fa-random").css("color", "green")
 			console.log("shuffling on")
 		}
-		currentSong.shouldShuffle = !currentSong.shouldShuffle
+		console.log("currentPlaylist.shouldShuffle", currentPlaylist.shouldShuffle)
+		currentPlaylist.shouldShuffle = !currentPlaylist.shouldShuffle
+		console.log("currentPlaylist.shouldShuffle", currentPlaylist.shouldShuffle)
 	}
 }
 
 function getRandomSong() {
-	let newRandomSong = Math.floor(Math.random() * songDB.length)
-	return newRandomSong
+	let randomIndex = _.random(0, currentPlaylist.tracks.length - 1)
+	console.log("RANDOMINDEX", randomIndex)
+	let randomSong = currentPlaylist.tracks[randomIndex]
+	console.log("currentPlaylist.tracks.length", currentPlaylist.tracks.length)
+	console.log("newRandomSong", randomSong)
+	return randomSong
 }
 
 function playPrevTrack() {
 	console.log("previous track")
-
 	TweenMax.to(".fa-backward", 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
-
 	let prevTrack
 
 	if (isPlaying) {
-		if (currentSong.shouldRepeat) {
-			prevTrack = currentSong.index
-		} else if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldRepeat) {
+			prevTrack = currentSong
+		} else if (currentPlaylist.shouldShuffle) {
 			prevTrack = getRandomSong()
-			if (prevTrack === currentSong.index) {
-				prevTrack++
+			while (prevTrack.title == currentSong.title) {
+				prevTrack = getRandomSong()
 			}
 		} else {
-			currentSong.index === 0 ? prevTrack = songDB.length - 1 : prevTrack = currentSong.index - 1
+			prevTrack = currentPlaylist.prevTrack(currentSong)
 		}
 		loadTrack(prevTrack)		
 	} else {
@@ -332,29 +297,19 @@ function playPrevTrack() {
 
 function playNextTrack() {
 	console.log("next track")
-	// Can come from:
-	// shuffle
-	// repeat
-	// or loadTrack
-
 	TweenMax.to(".fa-forward", 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
-
 	let nextTrack
-	let newRandomSong = Math.floor(Math.random() * songDB.length)
-
+	
 	if (isPlaying) {
-		// if shuffle and repeat are off
-		if (!currentSong.shouldRepeat && !currentSong.shouldShuffle) {
-			currentSong.index === (songDB.length - 1) ? nextTrack = 0 : nextTrack = currentSong.index + 1
-		// if repeat is on
-		} else if (currentSong.shouldRepeat) {
-			nextTrack = currentSong.index
-		// if shuffle is on
-		} else if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldRepeat) {
+			nextTrack = currentSong
+		} else if (currentPlaylist.shouldShuffle) {
 			nextTrack = getRandomSong()
-			if (nextTrack === currentSong.index) {
-				nextTrack++
+			while (nextTrack.title == currentSong.title) {
+				nextTrack = getRandomSong()
 			}
+		} else {
+			nextTrack = currentPlaylist.nextTrack(currentSong)
 		}
 		loadTrack(nextTrack)
 	} else {
@@ -428,11 +383,13 @@ function openPlaylistFolder () {
 				"<p><%= name %></p>" +
 				"<p class='contains-songs'><%= trackTitles %></p>" +
 			"</div>")
-		for (let playlist of playlists) {				
+		for (let playlist of playlists) {
+			let trackNames = playlist.trackNames()
+			console.log("trackNames", trackNames)
 			let compiled = template({
 					tracksIndex: playlist.tracksIndex,
 					name: playlist.name,
-					trackTitles: playlist.trackNames()
+					trackTitles: trackNames.partial
 					})
 			playlistsDOM = playlistsDOM + compiled
 		}
@@ -444,8 +401,6 @@ function openPlaylistFolder () {
 	}
 	playlistFolderOpen = !playlistFolderOpen
 }
-
-
 
 function showRestSongs(e) {
 	e.stopPropagation()
