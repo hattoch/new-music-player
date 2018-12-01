@@ -4,7 +4,7 @@ class Song {
 			title: '',
 			artist: '',
 			cover: '',
-			loved: null,
+			loved: false,
 			src: ''
 		}
 		Object.assign(this, defaults, settings)

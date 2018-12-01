@@ -18,4 +18,22 @@ class Playlist {
 		trackTitles.rest = trackTitles.partial.splice(3, trackTitles.partial.length)
 		return trackTitles
 	}
+	hideRestTracks() {
+		let rest = this.trackNames().rest
+		let insert
+		if (rest.length !=0) {
+			insert = `<span class='more-tracks'>${rest.length} more</span>`
+		} else {
+			insert
+		}
+		return insert
+	}
+	showRestTracks() {
+		let rest = this.trackNames().rest
+		let insert = rest + "<span class='less-tracks'>hide</span>"
+		return insert
+	}
+	saveTrack(track) {
+		this.tracks.push[track]
+	}
 }

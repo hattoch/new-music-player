@@ -33,7 +33,8 @@ $(document).on('click', '.fa-heart', loved);
 $(document).on('click', '.fa-plus-circle', addToPlaylist);
 $(document).on('click', '.playlist-tab', openPlaylistFolder)
 $(document).on('click', '.playlist', loadSongs)
-$(document).on('click', '.show-songs', showRestSongs)
+$(document).on('click', '.more-tracks', showRestTracks)
+$(document).on('click', '.less-tracks', hideRestTracks)
 
 
 // Fetch playlists from server
@@ -114,7 +115,11 @@ function loadTrack(trackToChange) {
 	//Set song source
 	player.src = currentSong.src
 
-	if (currentSong.loved) {
+	let songInDB = _.findWhere(songDB, {
+						title: currentSong.title,
+						artist: currentSong.artist
+					})
+	if (songInDB.loved) {
 		$(".fa-heart").css("color", "red")
 	} else {
 		$(".fa-heart").css("color", "white")
@@ -358,19 +363,29 @@ function mute() {
 }
 
 function loved () {
-	let isLoved = songDB[currentSong.index].loved
+	let lovedPlaylistExists = playlists[0].name.includes('Loved')
+	if (!lovedPlaylistExists) {
+		let settings = {
+			name: 'Loved <i class="color: fas fa-heart p-1" style="color: pink"></i>',
+			tracksIndex: [],
+			tracks: []
+		}
+		playlists.unshift(new Playlist(settings))
+	}
+	let state = currentSong.toggleLoved()
+	console.log("state",state)
+	
+
 	let lovedTimeline = new TimelineMax()
-	if (isLoved) {
+	if (state == 'unloved') {
 		console.log("isLoved")
 		lovedTimeline.to(this, 0.1, {ease: Power1.easeOut, y: -5, repeat: 1, yoyo: true})
 		.to(this, 0.2, {ease: Power1.easeOut, color: "white"}, "-=0.2")	
-	} else {
+	} else if (state == 'loved') {
 		console.log("is not loved")
 		lovedTimeline.to(this, 0.1, {ease: Power1.easeOut, y: -5, repeat: 1, yoyo: true})
 		.to(this, 0.2, {ease: Power1.easeOut, color: "red"}, "-=0.2")	
 	}
-
-	songDB[currentSong.index].loved = !songDB[currentSong.index].loved
 }
 
 function openPlaylistFolder () {
@@ -381,15 +396,14 @@ function openPlaylistFolder () {
 		let template = _.template(
 			"<div class='playlist' data-playlist-name='<%= name %>' data-tracks='<%= tracksIndex %>'>" +
 				"<p><%= name %></p>" +
-				"<p class='contains-songs'><%= trackTitles %></p>" +
+				"<p class='contains-songs'><%= trackTitles %><span class='rest-tracks'><%= more %></span></p>" +
 			"</div>")
 		for (let playlist of playlists) {
-			let trackNames = playlist.trackNames()
-			console.log("trackNames", trackNames)
 			let compiled = template({
 					tracksIndex: playlist.tracksIndex,
 					name: playlist.name,
-					trackTitles: trackNames.partial
+					trackTitles: playlist.trackNames().partial,
+					more: playlist.hideRestTracks()
 					})
 			playlistsDOM = playlistsDOM + compiled
 		}
@@ -402,34 +416,11 @@ function openPlaylistFolder () {
 	playlistFolderOpen = !playlistFolderOpen
 }
 
-function showRestSongs(e) {
+function showRestTracks(e) {
 	e.stopPropagation()
-	let allSongs = $(this).parents('.playlist').data('containssongs')
-	let arrayOfAllSongs = JSON.parse("[" + allSongs + "]")
-	let songsToShow = ", "
-
-	if ( $(this).hasClass("showing") ) {
-		$('.show-songs').removeClass("showing")
-		$('.show-songs').html("...")
-		let songToRemove = songDB[arrayOfAllSongs[3]].title
-		let startIndex = $('.contains-songs').html().indexOf(songToRemove) - 2 //to include the space and comma before it
-		console.log($(this).parents().html())
-		console.log()
-	} else {
-		for (let i = 3; i < arrayOfAllSongs.length; i++) {
-			songsToShow = songsToShow + songDB[arrayOfAllSongs[i]].title
-			if (i === arrayOfAllSongs.length - 1) {
-				break
-			} else {
-				songsToShow = songsToShow + ", "
-			}
-			console.log(songsToShow)
-		}
-		$('.show-songs').addClass("showing")
-		$('.show-songs').html("hide")
-		$(this).before(songsToShow)
-	}
-	
+	let playlistName = $(this).parents('.playlist').data('playlist-name')
+	let playlist = _.findWhere(playlists, {name: playlistName})
+	$(this).parents('.rest-tracks').html(", " + playlist.showRestTracks())
 	
 	/*
 	if (isRestPopupVis) {
@@ -442,6 +433,15 @@ function showRestSongs(e) {
 	}
 	*/
 }
+
+function hideRestTracks(e) {
+	e.stopPropagation()
+	let playlistName = $(this).parents('.playlist').data('playlist-name')
+	let playlist = _.findWhere(playlists, {name: playlistName})
+	$(this).parents('.rest-tracks').html(playlist.hideRestTracks())
+}
+
+
 
 function addToPlaylist() {
 	$('.playlist-test').show()

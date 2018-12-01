@@ -201,3 +201,10 @@ p {
 .hide {
   display: none;
 }
+
+.more-tracks, .less-tracks {
+  color: white;
+  font-size: 0.8em;
+  text-decoration: underline;
+  padding: 0.4em;
+}
