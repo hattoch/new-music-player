@@ -1,0 +1,17 @@
+[
+	{
+		"index": 0,
+		"name": "Test Playlist",
+		"tracksIndex": [0, 2, 3]
+	},
+	{
+		"index": 1,
+		"name": "Rad",
+		"tracksIndex": [4]
+	},
+	{
+		"index": 2,
+		"name": "Classical",
+		"tracksIndex": [0, 1, 2, 3]
+	}
+]

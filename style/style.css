@@ -68,7 +68,7 @@ p {
   overflow: scroll
 }
 
-.songContainer {
+.song {
   padding-right: 1rem;
 }
 
@@ -157,11 +157,11 @@ p {
 }
 
 .playlist {
-  
+  border-bottom: 2px solid lightgray;
   background-color: #141d1f;
-  
+  padding: 0.5rem 1rem;
+  background-color: hsl(191, 30%, 20%);
   opacity: 0;
-  transform: scale(0.5);
 }
 
 .playlist-test {
@@ -174,4 +174,37 @@ p {
   background-color: blue
 }
 
+.contains-songs {
+  color: black;
+  font-size: 0.8em;
+}
 
+.show-songs {
+  width: 1rem;
+  height: 0.3rem;
+  margin: 0.2rem;
+  border-radius: 0.2rem;
+  border: solid 1px lightgray;
+  color: white;
+  font-size: 1;
+  padding: 0.2rem;
+}
+
+#popupAllSongs {
+  display: none;
+  width: 100%;
+  height: auto;
+  padding: 0.5rem;
+  background-color: hsl(191, 30%, 20%);
+}
+
+.hide {
+  display: none;
+}
+
+.more-tracks, .less-tracks {
+  color: white;
+  font-size: 0.8em;
+  text-decoration: underline;
+  padding: 0.4em;
+}

@@ -1,61 +1,11 @@
-// STORAGE
-const songDB = [
-{
-	title: "42 karat", 
-	artist: "Bruno Mars",
-	cover: "img/album-cover1.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_the-happy-monster_chubby-jackson-and-his-orchestra-jackson-bauer_gbia0005336b/The%20Happy%20Monster%20-%20Chubby%20Jackson%20and%20his%20Orchestra.mp3"
-},
-{
-	title: "Roar",
-	artist: "Katy Perry",
-	cover: "img/album-cover2.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_la-vie-en-rose_the-bernard-peiffer-trio-bernard-peiffer-bill--clark-joe-benjamin_gbia0005289b/La%20Vie%20En%20Rose%20-%20The%20Bernard%20Peiffer%20Trio.mp3"
-},
-{
-	title: "November Rain", 
-	artist: "Guns N Roses",
-	cover: "img/album-cover3.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_gloomy-sunday-the-famous-hungarian-suicide-song_billie-holiday-lewis-seress_gbia0008324b/Gloomy%20Sunday%20%28The%20Famous%20Hungarian%20Suici%20-%20Billie%20Holiday.mp3"
-},
-{
-	title: "Kiss",
-	artist: "Prince",
-	cover: "img/album-cover4.jpg",
-	loved: false,
-	src: "https://archive.org/download/78_deep-purple_jimmy-dorsey-and-his-orchestra-bob-eberly-peter-de-rose-mitchell-parris_gbia0013895a/Deep%20Purple%20-%20Jimmy%20Dorsey%20And%20His%20Orchestra.mp3"
-},
-{
-	title: "Sweet Home Alabama", 
-	artist: "Lynard Skynard",
-	cover: "img/album-cover5.jpg",
-	loved: false,
-	src: "songs/heynow.mp3"
-}]
-
-let currentSong = {
-	index: null,
-	id: null,
-	title: null,
-	artist: null,
-	cover: null,
-	src: null,
-	playBtn: null,
-	shouldRepeat: false,
-	shouldShuffle: false,
-	isLoved: null
-}
+var playlists = []
+var curentPlaylist
+var currentSong
 
 // Creates poppers
 var popupVol = $("#popupVol")
 //popupVol.hide()
-isPopupVis = false
-
-// Animations
-
+isVolPopupVisible = false
 
 // Audio settings
 var player = new Audio()
@@ -67,7 +17,7 @@ var playlistFolderOpen = false
 let runningInterval = 0
 
 // Add event handlers
-$(document).on('dblclick', '.songContainer', loadTrack);
+$(document).on('dblclick', '.song', loadTrack);
 $(document).on('click', '.fa-play-circle', play);
 $(document).on('click', '.fa-pause-circle', play);
 $(document).on('click', '.fa-backward', playPrevTrack);
@@ -82,76 +32,79 @@ $(document).on('click', '#test', test);
 $(document).on('click', '.fa-heart', loved);
 $(document).on('click', '.fa-plus-circle', addToPlaylist);
 $(document).on('click', '.playlist-tab', openPlaylistFolder)
-$(document).on('click', '.playlist', loadSongList)
+$(document).on('click', '.playlist', loadSongs)
+$(document).on('click', '.more-tracks', showRestTracks)
+$(document).on('click', '.less-tracks', hideRestTracks)
 
-function test () {
-	TweenMax.to("#test", 4, {x:300})
-}
+
+// Fetch playlists from server
+$.getJSON('./playlists/savedPlaylists.json',{}, function( data ){ 
+	for (let playlist of data) {
+		let songs = []
+		for (track of playlist.tracksIndex) {
+			let songSettings = {
+				title: songDB[track].title,
+				artist: songDB[track].artist,
+				cover: songDB[track].cover,
+				loved: songDB[track].loved,
+				src: songDB[track].src
+			}
+			songs.push(new Song(songSettings))
+		}
+		let settings = {
+			name: playlist.name,
+			tracksIndex: playlist.tracksIndex,
+			tracks: songs
+		}
+		playlists.push(new Playlist(settings))
+	}
+})
+
+//setTimeout(function(){console.log(playlists),1000})
 
 // Functions
-function loadSongList() {
-	let playListIndex = $(this).data("index")	
-	let playlistJSON
-	let playlistSongs
-	let toLoad
-	let plTimeline = new TimelineMax()
-
+function loadSongs() {
+	currentPlaylist = new CurrentPlaylist(_.findWhere(playlists, {name: $(this).data('playlist-name')}))
 	$('#songList').empty()
-	$('.playlist-menu').empty()
-	plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%"}).to('.saved-playlists', 0.1, {opacity: 0})
 
-	$.getJSON('./playlists/playlists.json',{}, function( data ) { 
-	  playlistJSON = data
-	  playlistSongs = playlistJSON.playlists[playListIndex].containsSongs
-
-	  for (let i = 0; i < playlistSongs.length; i++) {
-	  	
-		$('#songList').append(`<div class='songContainer canHover d-flex justify-content-between align-items-center' data-index=${i} data-src=${songDB[playlistSongs[i]].src}>
-								<img class='coverImg' src= ${ songDB[playlistSongs[i]].cover }>
-								<div class="d-flex flex-column ">
-									<p class="flex-fill d-flex justify-content-center">${ songDB[playlistSongs[i]].artist }</p>
-									<p class="flex-fill d-flex justify-content-center">${ songDB[playlistSongs[i]].title }</p>
-								</div>
-								<i id="smallPlayButton" class="fas fa-play-circle"></i>
-								</div>`
-								)
-		}
-	})
+	let plTimeline = new TimelineMax()
+	plTimeline
+		.to('.playlist', 0.1, {opacity: 0})
+		.to('.playlist-menu', 0.1, {
+			ease: Power2.easeOut, 
+			height: "0%", 
+			onComplete: function() {$('.playlist-menu').empty()} })
 	
-	TweenMax.from($(".songContainer"), 0.5, {x:-100, opacity: 0})
+	for (let track of currentPlaylist.tracks) {
+		track.render('#songList')
+	}
+	
+	TweenMax.from($(".song"), 0.5, {x:-100, opacity: 0})
+
+	playlistFolderOpen = !playlistFolderOpen
 }
 
-// trackToChange is either a number if it comes from prev- or nextTrack, or an event object if it comes from a songContainer or progressBarEmpty click
+// trackToChange is either a number if it comes from prev- or nextTrack, or an event object if it comes from a song
 function loadTrack(trackToChange) {
 	console.log("loading track")
 
-	let newSong = {index: null}
+	let songToLoad
 
-	//removes highlight from previous track(s), before hightlighting clicked track, 
-	$(".songContainer.playing").removeClass("playing").addClass("canHover")
-
-	// if coming from songContainer, make that the song, otherwise use the trackToChange provided by next- and prevTrack
-	if ( $(this).hasClass("songContainer") ) {
-		$(this).removeClass("canHover")
-		$(this).addClass("playing")
-		newSong.index = $(this).data("index")
-	} else if (trackToChange || trackToChange === 0) {
-		$( `.songContainer[data-index= ${trackToChange} ]` ).removeClass("canHover").addClass("playing")
-		newSong.index = trackToChange
+	if ( $(this).hasClass("song") ) {
+		songToLoad = _.findWhere(currentPlaylist.tracks, {
+			title: $(this).data('title'),
+			artist: $(this).data('artist')
+		});
+	} else {
+		songToLoad = trackToChange
 	}
 
-	//must remove the pause icon and track highlight before anything else
-	$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")//**
-	
-	//copies all db data to currentSong object
-	currentSong.index = newSong.index
-	currentSong.id = `[data-index=${currentSong.index}]`
-	currentSong.title = songDB[currentSong.index].title
-	currentSong.artist = songDB[currentSong.index].artist
-	currentSong.cover = songDB[currentSong.index].cover
-	currentSong.src = songDB[currentSong.index].src
-	currentSong.playBtn = $(currentSong.id).find("#smallPlayButton")
-	currentSong.isLoved = songDB[currentSong.index].loved
+	songToLoad.selector = `.song[data-title='${ songToLoad.title }']`
+	songToLoad.playBtn = $(songToLoad.selector).find("#smallPlayButton")
+
+	currentSong = new CurrentSong(songToLoad)
+	$(".song.playing").removeClass("playing").addClass("canHover")
+	$(currentSong.selector).removeClass("canHover").addClass("playing")
 
 	//updates info to places that display it
 	$(".currentTitle").text(currentSong.title)
@@ -162,8 +115,11 @@ function loadTrack(trackToChange) {
 	//Set song source
 	player.src = currentSong.src
 
-	let isSongLoved = songDB[currentSong.index].loved
-	if (isSongLoved) {
+	let songInDB = _.findWhere(songDB, {
+						title: currentSong.title,
+						artist: currentSong.artist
+					})
+	if (songInDB.loved) {
 		$(".fa-heart").css("color", "red")
 	} else {
 		$(".fa-heart").css("color", "white")
@@ -180,14 +136,13 @@ function loadTrack(trackToChange) {
 }
 
 function play() {
-	let songIsLoaded = currentSong.index || currentSong.index === 0
-
 	TweenMax.to(this, 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
 
-	if (songIsLoaded) {
+	if (currentSong) {
 		if (isPlaying) {
 			console.log("pausing")
 			player.pause()
+			isPlaying = !isPlaying
 			//Change pause buttons to play
 			$("#bigPlayButton").removeClass("fa-pause-circle").addClass("fa-play-circle")
 			$(currentSong.playBtn).removeClass("fa-pause-circle").addClass("fa-play-circle")
@@ -201,7 +156,6 @@ function play() {
 			$(currentSong.playBtn).removeClass("fa-play-circle").addClass("fa-pause-circle")
 			setProgress()
 		}
-
 	} else {
 		console.log("Can't play: no song loaded")
 	}
@@ -284,56 +238,60 @@ function repeat(state) {
 		currentSong.shouldRepeat = false
 	} else {
 		shuffle("turnOff")
-		if (currentSong.shouldRepeat) {
+		if (currentPlaylist.shouldRepeat) {
 			$(".fa-redo").css("color", "inherit")
 			console.log("repeating off")
 		} else {
 			$(".fa-redo").css("color", "green")
 			console.log("repeating on")
 		}
-		currentSong.shouldRepeat = !currentSong.shouldRepeat
+		currentPlaylist.shouldRepeat = !currentPlaylist.shouldRepeat
 	}
 }
 
 function shuffle(state) {
 	if (state === "turnOff") {
 		$(".fa-random").css("color", "inherit")
-		currentSong.shouldShuffle = false
+		currentPlaylist.shouldShuffle = false
 	} else {
 		repeat("turnOff")
-		if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldShuffle) {
 			$(".fa-random").css("color", "inherit")
-			console.log("shuffling off: " + currentSong.shouldShuffle)
+			console.log("shuffling off: " + currentPlaylist.shouldShuffle)
 		} else {
 			$(".fa-random").css("color", "green")
 			console.log("shuffling on")
 		}
-		currentSong.shouldShuffle = !currentSong.shouldShuffle
+		console.log("currentPlaylist.shouldShuffle", currentPlaylist.shouldShuffle)
+		currentPlaylist.shouldShuffle = !currentPlaylist.shouldShuffle
+		console.log("currentPlaylist.shouldShuffle", currentPlaylist.shouldShuffle)
 	}
 }
 
 function getRandomSong() {
-	let newRandomSong = Math.floor(Math.random() * songDB.length)
-	return newRandomSong
+	let randomIndex = _.random(0, currentPlaylist.tracks.length - 1)
+	console.log("RANDOMINDEX", randomIndex)
+	let randomSong = currentPlaylist.tracks[randomIndex]
+	console.log("currentPlaylist.tracks.length", currentPlaylist.tracks.length)
+	console.log("newRandomSong", randomSong)
+	return randomSong
 }
 
 function playPrevTrack() {
 	console.log("previous track")
-
 	TweenMax.to(".fa-backward", 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
-
 	let prevTrack
 
 	if (isPlaying) {
-		if (currentSong.shouldRepeat) {
-			prevTrack = currentSong.index
-		} else if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldRepeat) {
+			prevTrack = currentSong
+		} else if (currentPlaylist.shouldShuffle) {
 			prevTrack = getRandomSong()
-			if (prevTrack === currentSong.index) {
-				prevTrack++
+			while (prevTrack.title == currentSong.title) {
+				prevTrack = getRandomSong()
 			}
 		} else {
-			currentSong.index === 0 ? prevTrack = songDB.length - 1 : prevTrack = currentSong.index - 1
+			prevTrack = currentPlaylist.prevTrack(currentSong)
 		}
 		loadTrack(prevTrack)		
 	} else {
@@ -344,29 +302,19 @@ function playPrevTrack() {
 
 function playNextTrack() {
 	console.log("next track")
-	// Can come from:
-	// shuffle
-	// repeat
-	// or loadTrack
-
 	TweenMax.to(".fa-forward", 0.1, {ease: Power2.easeOut, y: -5, repeat: 1, yoyo: true })
-
 	let nextTrack
-	let newRandomSong = Math.floor(Math.random() * songDB.length)
-
+	
 	if (isPlaying) {
-		// if shuffle and repeat are off
-		if (!currentSong.shouldRepeat && !currentSong.shouldShuffle) {
-			currentSong.index === (songDB.length - 1) ? nextTrack = 0 : nextTrack = currentSong.index + 1
-		// if repeat is on
-		} else if (currentSong.shouldRepeat) {
-			nextTrack = currentSong.index
-		// if shuffle is on
-		} else if (currentSong.shouldShuffle) {
+		if (currentPlaylist.shouldRepeat) {
+			nextTrack = currentSong
+		} else if (currentPlaylist.shouldShuffle) {
 			nextTrack = getRandomSong()
-			if (nextTrack === currentSong.index) {
-				nextTrack++
+			while (nextTrack.title == currentSong.title) {
+				nextTrack = getRandomSong()
 			}
+		} else {
+			nextTrack = currentPlaylist.nextTrack(currentSong)
 		}
 		loadTrack(nextTrack)
 	} else {
@@ -377,15 +325,15 @@ function playNextTrack() {
 
 function toggleVolumeBar() {
 	console.log("toggle volume bar")
-	if (isPopupVis) {
+	if (isVolPopupVisible) {
 		popupVol.hide()
 		popupVol.removeClass("d-flex align-items-end")
 	} else {
 		popupVol.show()
 		popupVol.addClass("d-flex align-items-end")
 	}
-	isPopupVis = !isPopupVis
-	var popper = new Popper($(".fa-volume-up"), popupVol, {
+	isVolPopupVisible = !isVolPopupVisible
+	let popper = new Popper(this, popupVol, {
 		placement: 'top'
 	})
 }
@@ -415,49 +363,82 @@ function mute() {
 }
 
 function loved () {
-	let isLoved = songDB[currentSong.index].loved
+	let lovedPlaylistExists = playlists[0].name.includes('Loved')
+	if (!lovedPlaylistExists) {
+		let settings = {
+			name: 'Loved <i class="color: fas fa-heart p-1" style="color: pink"></i>',
+			tracksIndex: [],
+			tracks: []
+		}
+		playlists.unshift(new Playlist(settings))
+	}
+	let state = currentSong.toggleLoved()
+	console.log("state",state)
+	
+
 	let lovedTimeline = new TimelineMax()
-	if (isLoved) {
+	if (state == 'unloved') {
 		console.log("isLoved")
 		lovedTimeline.to(this, 0.1, {ease: Power1.easeOut, y: -5, repeat: 1, yoyo: true})
 		.to(this, 0.2, {ease: Power1.easeOut, color: "white"}, "-=0.2")	
-	} else {
+	} else if (state == 'loved') {
 		console.log("is not loved")
 		lovedTimeline.to(this, 0.1, {ease: Power1.easeOut, y: -5, repeat: 1, yoyo: true})
 		.to(this, 0.2, {ease: Power1.easeOut, color: "red"}, "-=0.2")	
 	}
-
-	songDB[currentSong.index].loved = !songDB[currentSong.index].loved
 }
 
 function openPlaylistFolder () {
 	let plTimeline = new TimelineMax()
 	
-	if (playlistFolderOpen) {
-		plTimeline.to('.playlist', 1, {opacity: 0}).to('.playlist-menu', 1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
-
+	if (!playlistFolderOpen) {
+		let playlistsDOM = ""
+		let template = _.template(
+			"<div class='playlist' data-playlist-name='<%= name %>' data-tracks='<%= tracksIndex %>'>" +
+				"<p><%= name %></p>" +
+				"<p class='contains-songs'><%= trackTitles %><span class='rest-tracks'><%= more %></span></p>" +
+			"</div>")
+		for (let playlist of playlists) {
+			let compiled = template({
+					tracksIndex: playlist.tracksIndex,
+					name: playlist.name,
+					trackTitles: playlist.trackNames().partial,
+					more: playlist.hideRestTracks()
+					})
+			playlistsDOM = playlistsDOM + compiled
+		}
+		$('.playlist-menu').html(playlistsDOM)
+		let heightToUse = $(".playlist-menu").get(0).scrollHeight
+		plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: heightToUse + "px"}).to('.playlist', 0.1, {opacity: 0.5})
 	} else {
-		let playlistJSON;
-		let toLoad = ""
-
-		$.getJSON('./playlists/playlists.json',{}, function( data ){ 
-		  	playlistJSON = data
-
-		  	for (let i = 0; i < 3; i++) {
-				let instance = playlistJSON.playlists[i]
-				toLoad = toLoad + `<div class='playlist' data-index='${i}' data-containsSongs='${instance.containsSongs}'>
-							<p>${instance.name}</p>
-							<p>${ songDB[instance.containsSongs[0]].title }</p>
-						</div>`
-						console.log(toLoad)
-			}
-			$('.playlist-menu').html(toLoad)
-			let heightToUse = $(".playlist-menu").get(0).scrollHeight
-			//** it's getting the automatic heigh but it's off by like 10px. I've hardcoded that in.
-			plTimeline.to('.playlist-menu', 1, {ease: Power2.easeOut, height: heightToUse + 10 + "px"}).to('.playlist', 1, {scale: 1, opacity: 0.5}, "-=0.5")
-		})
+		plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
 	}
 	playlistFolderOpen = !playlistFolderOpen
+}
+
+function showRestTracks(e) {
+	e.stopPropagation()
+	let playlistName = $(this).parents('.playlist').data('playlist-name')
+	let playlist = _.findWhere(playlists, {name: playlistName})
+	$(this).parents('.rest-tracks').html(", " + playlist.showRestTracks())
+	
+	/*
+	if (isRestPopupVis) {
+		$('#popupAllSongs').hide()
+	} else {
+		let allSongs = $(this).parents('.playlist').data('containssongs')
+		let arrayOfAllSongs = JSON.parse("[" + allSongs + "]")
+		$('#popupAllSongs').html(arrayOfAllSongs)
+		$('#popupAllSongs').show()
+	}
+	*/
+}
+
+function hideRestTracks(e) {
+	e.stopPropagation()
+	let playlistName = $(this).parents('.playlist').data('playlist-name')
+	let playlist = _.findWhere(playlists, {name: playlistName})
+	$(this).parents('.rest-tracks').html(playlist.hideRestTracks())
 }
 
 

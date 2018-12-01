@@ -3,18 +3,25 @@
 
 What do I want to do tomorrow?
 
-playlist cont
+playlist cont:
+- what should the playlist container look like? should it include a taste of songs inclucded in the playlist? yes, either the names of the songs (max 3, followed by dots), or small thumbnails (too small?)
+- add hover to playlists
+- add animation to the song loads (why did this animation disappear, anyway?)
+- add a header section to the song list which shows playlist name
+
+
+- be able to add song to playlist via plus button
+- använd toggle() istället för att ha tex isPlaying...
 
 - when clicking the plus icon one should get a modal popup which asks you whether to add track to existing playlist or create new one
-- loving a song should allow you to go to a menu and load your favorites
-- try spotify's API or create my own DB. just save the songDB in a separate file and use ajax. download some mp3s. 3hrs
+
 
 
 -------------
 - why does the first song not play? has it not finished loading?
 - it's getting the automatic heigh but it's off by like 10px. I've hardcoded that in.
 
-- github
+
 - the numbers in fullTime are different per song and the layout of the progress area thus becomes broken in smaller views
 - look out for //**
 - make it mobile friendly and see if some added functionality should be added
@@ -22,8 +29,14 @@ playlist cont
 - add fadeIn of turntable onload
 - replace placeholder cover
 - testa ladda upp skitet
+- when loading a next track the progress bar should be reset before it awaits the new currentTime
+- the contains songs line can have a "see all" button that expands a popup with the included songs
+- I shouldn't do too many ajax requests. better to get an object once. but I think I'm okay atm, I have one for the playlist and one for the song (ah, when I press play I shouldn't perhaps load the song right then and there, or? actually I kinda do, right? because I don't want to download all the playlist's songs. anyway, smth to think about)
+- maybe I should preemptively load the next track when I load a track. that way when I press next it just plays it rather than first having to dl it
+- Use objects and classes more. like create an instance of a playlist, with keys like artist, title, etc, and built in methods like play, which plays that particular song, etc.
+- check out rest and spread again, they'd prob come in handy here
 
-
+* loving a song should allow you to go to a menu and load your favorites
 
 
 what does a finished music player look like?:
