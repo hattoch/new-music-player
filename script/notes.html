@@ -1,19 +1,24 @@
+What do I want to do next time?
+
+- loved playlist should always be on top (pinned)
+- why does the heart icon on the loved playlist change color depending on whether the currently playing song is loved or not?
+- the previously playing track's pause button doesn't get switched to play button when changing tracks
+
+- lägg templates i egen mapp
+- make song template
 
 
-
-What do I want to do tomorrow?
-
-playlist cont:
-- what should the playlist container look like? should it include a taste of songs inclucded in the playlist? yes, either the names of the songs (max 3, followed by dots), or small thumbnails (too small?)
-- add hover to playlists
-- add animation to the song loads (why did this animation disappear, anyway?)
-- add a header section to the song list which shows playlist name
-
+- add a header section to the song list which shows playlist name. when nothing's playing it could say 'select playlist', when playing the tab could move that text to the side and display title of playlist
 
 - be able to add song to playlist via plus button
-- använd toggle() istället för att ha tex isPlaying...
-
 - when clicking the plus icon one should get a modal popup which asks you whether to add track to existing playlist or create new one
+
+
+
+playlist cont:
+
+- add hover to playlists
+- add animation to the song loads (why did this animation disappear, anyway?)
 
 
 
@@ -30,19 +35,14 @@ playlist cont:
 - replace placeholder cover
 - testa ladda upp skitet
 - when loading a next track the progress bar should be reset before it awaits the new currentTime
-- the contains songs line can have a "see all" button that expands a popup with the included songs
+
 - I shouldn't do too many ajax requests. better to get an object once. but I think I'm okay atm, I have one for the playlist and one for the song (ah, when I press play I shouldn't perhaps load the song right then and there, or? actually I kinda do, right? because I don't want to download all the playlist's songs. anyway, smth to think about)
 - maybe I should preemptively load the next track when I load a track. that way when I press next it just plays it rather than first having to dl it
-- Use objects and classes more. like create an instance of a playlist, with keys like artist, title, etc, and built in methods like play, which plays that particular song, etc.
+
 - check out rest and spread again, they'd prob come in handy here
-
-* loving a song should allow you to go to a menu and load your favorites
-
 
 what does a finished music player look like?:
   functionality of e.g. spotify. standard music controls, some features like liking, adding to playlist (removing from playlist), loading songs dynamically and from external files, being able to save a user's playlists between sessions (so in a db),  little ecosystem basically, aesthetically pleasing, rethink layout
-
-
 
 
 

@@ -1,0 +1,14 @@
+<div class='playlist'>
+  <div data-playlist-name='${this.name}' data-tracks='${this.tracksIndex}'>
+    <div class='d-flex align-items-center'>
+      <div>
+      	<p>${this.name}</p>
+        <p>
+          <span class='contains-songs'>${this.trackNames().partial}</span>
+          <span class='rest-tracks' data-click='toggleRestTracks'>${this.restTracks()}</span>
+        </p>
+      </div>
+      <i data-click='loadSongs' class="fas fa-angle-double-right ml-auto p-1"></i>
+    </div>
+  </div>
+</div>

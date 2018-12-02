@@ -1,5 +1,5 @@
 var playlists = []
-var curentPlaylist
+var currentPlaylist
 var currentSong
 
 // Creates poppers
@@ -32,9 +32,9 @@ $(document).on('click', '#test', test);
 $(document).on('click', '.fa-heart', loved);
 $(document).on('click', '.fa-plus-circle', addToPlaylist);
 $(document).on('click', '.playlist-tab', openPlaylistFolder)
-$(document).on('click', '.playlist', loadSongs)
-$(document).on('click', '.more-tracks', showRestTracks)
-$(document).on('click', '.less-tracks', hideRestTracks)
+//$(document).on('click', '.playlist', loadSongs)
+//$(document).on('click', '.more-tracks', showRestTracks)
+//$(document).on('click', '.less-tracks', hideRestTracks)
 
 
 // Fetch playlists from server
@@ -392,26 +392,23 @@ function openPlaylistFolder () {
 	let plTimeline = new TimelineMax()
 	
 	if (!playlistFolderOpen) {
-		let playlistsDOM = ""
-		let template = _.template(
-			"<div class='playlist' data-playlist-name='<%= name %>' data-tracks='<%= tracksIndex %>'>" +
-				"<p><%= name %></p>" +
-				"<p class='contains-songs'><%= trackTitles %><span class='rest-tracks'><%= more %></span></p>" +
-			"</div>")
 		for (let playlist of playlists) {
-			let compiled = template({
-					tracksIndex: playlist.tracksIndex,
-					name: playlist.name,
-					trackTitles: playlist.trackNames().partial,
-					more: playlist.hideRestTracks()
-					})
-			playlistsDOM = playlistsDOM + compiled
+			playlist.show()
 		}
-		$('.playlist-menu').html(playlistsDOM)
 		let heightToUse = $(".playlist-menu").get(0).scrollHeight
-		plTimeline.to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: heightToUse + "px"}).to('.playlist', 0.1, {opacity: 0.5})
+		plTimeline
+			.to('.playlist-menu', 0.1, {
+				ease: Power2.easeOut, 
+				height: heightToUse + "px"})
+			.to('.playlist', 0.1, {
+				opacity: 0.5})
 	} else {
-		plTimeline.to('.playlist', 0.1, {opacity: 0}).to('.playlist-menu', 0.1, {ease: Power2.easeOut, height: "0%", onComplete: function() {$('.playlist-menu').empty()} })
+		plTimeline
+			.to('.playlist', 0.1, {
+				opacity: 0})
+			.to('.playlist-menu', 0.1, {
+				ease: Power2.easeOut, 
+				height: "0%"})
 	}
 	playlistFolderOpen = !playlistFolderOpen
 }
